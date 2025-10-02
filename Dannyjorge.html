@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Laberinto Emocional — Danna & Jorge (Final)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;700&display=swap');
+
+  :root{
+    --bg:#060608;
+    --muted: rgba(255,255,255,0.06);
+    --accent:#ff9a9e;
+    --gold:#ffd166;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,#020203,#05050a);color:#fff;font-family:'Cormorant Garamond',serif;}
+  .wrap{min-height:100%;display:flex;align-items:center;justify-content:center;padding:18px;}
+  #app{ width:100%; max-width:980px; min-height:700px; border-radius:14px; padding:26px; position:relative; overflow:hidden;
+       background:linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.005)); border:1px solid rgba(255,255,255,0.02); }
+  header{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+  .logo{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,#ff9a9e,#ffd166);display:flex;align-items:center;justify-content:center;color:#111;font-weight:800}
+  h1{margin:0;font-size:20px}
+  .lead{margin-top:4px;font-size:13px;opacity:0.9}
+
+  .stage{position:relative;width:100%;height:520px;border-radius:12px;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-top:12px}
+  .tunnel{position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 36%, rgba(255,255,255,0.02), transparent 30%);transform:translateZ(-120px);animation:tunnel 10s ease-in-out infinite}
+  @keyframes tunnel{0%{transform:translateZ(-120px) scale(1)}50%{transform:translateZ(-80px) scale(1.02)}100%{transform:translateZ(-120px) scale(1)}}
+
+  .panel{width:78%;max-width:760px;background:rgba(255,255,255,0.02);padding:26px;border-radius:12px;text-align:center;box-shadow:0 18px 60px rgba(0,0,0,0.6);transform-style:preserve-3d}
+  .symbol{width:100px;height:100px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:48px;margin:0 auto 12px;filter:drop-shadow(0 12px 40px rgba(0,0,0,0.6))}
+  .title{font-size:22px;margin:6px 0}
+  .body{font-size:16px;line-height:1.6;margin:10px auto;max-width:820px;opacity:0.95}
+
+  .kw{color:var(--gold);font-weight:700;text-decoration:underline;cursor:pointer;padding:2px 6px;border-radius:6px;background:rgba(255,255,255,0.01)}
+  .kw:hover{transform:translateY(-3px);transition:transform .18s ease}
+
+  .controls{display:flex;gap:10px;justify-content:center;align-items:center;margin-top:14px}
+  button{padding:10px 16px;border-radius:10px;border:0;cursor:pointer;font-weight:700;background:#fff;color:#111;box-shadow:0 8px 30px rgba(0,0,0,0.45)}
+  button.ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,0.06);box-shadow:none}
+  .dots{position:absolute;left:18px;top:30%;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px}
+  .dot{width:12px;height:12px;border-radius:50%;background:var(--muted);opacity:0.8}
+  .dot.active{background:var(--accent);transform:scale(1.25);box-shadow:0 6px 20px rgba(255,154,158,0.12)}
+
+  /* overlay repair */
+  .overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);z-index:60;opacity:0;pointer-events:none;transition:all .35s}
+  .overlay.show{opacity:1;pointer-events:auto}
+  .repair{width:260px;height:260px;border-radius:18px;background:linear-gradient(135deg,#ffdede,#ffd1ff);display:flex;align-items:center;justify-content:center;flex-direction:column;color:#111}
+  .repair .big{font-size:56px;margin-bottom:8px}
+
+  #finalFull{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:9999;flex-direction:column;background:linear-gradient(180deg,#ffdd57,#ffd166);color:#111}
+  #finalFull.show{display:flex}
+
+  footer{margin-top:12px;display:flex;gap:12px;justify-content:center;opacity:0.9;font-size:13px}
+
+  @media(max-width:720px){.panel{width:92%}.symbol{width:80px;height:80px;font-size:40px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="app" role="application" aria-label="Laberinto Emocional Danna">
+    <header>
+      <div class="logo">LD</div>
+      <div>
+        <h1>El Laberinto — Danna &amp; Jorge</h1>
+        <div class="lead">Un recorrido simbólico: toca las palabras para escuchar, sentir y avanzar. No puedes seguir sin atender.</div>
+      </div>
+    </header>
+
+    <div class="stage" aria-live="polite">
+      <div class="tunnel" aria-hidden="true"></div>
+      <div class="dots" aria-hidden="true">
+        <div class="dot active" id="dot-0"></div>
+        <div class="dot" id="dot-1"></div>
+        <div class="dot" id="dot-2"></div>
+        <div class="dot" id="dot-3"></div>
+        <div class="dot" id="dot-4"></div>
+        <div class="dot" id="dot-5"></div>
+        <div class="dot" id="dot-6"></div>
+        <div class="dot" id="dot-7"></div>
+      </div>
+
+      <div class="panel" id="panel" tabindex="0">
+        <div class="symbol" id="symbol">🧭</div>
+        <div class="title" id="title">Entrada — El faro y su espejismo</div>
+        <div class="body" id="body"></div>
+
+        <div class="controls" id="controls">
+          <button class="ghost" id="listenBtn">Escuchar</button>
+          <button id="nextBtn" disabled style="opacity:0.6">Continuar</button>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <small>Personalizado con tu historia — Danna</small>
+      <small style="opacity:.5">·</small>
+      <small style="opacity:.7">Palabras clave: confianza, lealtad, elección, equilibrio, tiempo, paz, verdad, entender</small>
+    </footer>
+
+    <div class="overlay" id="overlay" aria-hidden="true">
+      <div class="repair">
+        <div class="big">❤️‍🩹</div>
+        <div id="repairText">Cerrando ciclo…</div>
+      </div>
+    </div>
+
+    <div id="finalFull" role="dialog" aria-modal="true">
+      <div style="font-size:36px;font-weight:700">Te libero con amor</div>
+      <div style="margin-top:8px;font-size:20px;opacity:.95">— Danna</div>
+      <div style="margin-top:18px">
+        <button id="restartBtn" style="padding:10px 16px;border-radius:10px;border:0;font-weight:700">Reiniciar</button>
+      </div>
+    </div>
+
+    <!-- optional background music: place soft-piano.mp3 next to this file -->
+    <audio id="bgm" loop preload="auto" style="display:none"><source src="soft-piano.mp3" type="audio/mpeg"></audio>
+  </div>
+</div>
+
+<script>
+/* -------------------- Datos extendidos con metáforas -------------------- */
+const STEPS = [
+  /* 0 - Entrada (faro) */
+  {
+    id:0,
+    sym:'🧭',
+    title:'Entrada — El faro y su espejismo',
+    body:`El amor es como un faro en la oscuridad: guía, protege y da dirección… pero también puede volverse un espejismo si la luz se tuerce.
+    <br><br>Tu silencio y tus actitudes construyeron un muro. Si quieres avanzar, toca <span class="kw" data-kw="confianza">confianza</span>.`
+  },
+
+  /* 1 - Lealtad (fuego) */
+  {
+    id:1,
+    sym:'🔥',
+    title:'Lealtad a prueba — El fuego real vs. las luces artificiales',
+    body:`El amor verdadero es un fuego que calienta. Las apariencias son luces artificiales que brillan un momento y dejan oscuridad.
+    Nunca te di razones para desconfiar; aun así cargué culpas que no eran mías.
+    <br><br>Para seguir, toca <span class="kw" data-kw="lealtad">lealtad</span>.`
+  },
+
+  /* 2 - Elección (puente) */
+  {
+    id:2,
+    sym:'🌉',
+    title:'El Grupo y la Elección — Puente o humo',
+    body:`El amor es un puente: conecta y resiste tormentas. La mentira y la indiferencia son un puente de humo: parece sólido, pero desaparece cuando se pisa.
+    Cuando me pusiste en segundo lugar, la puerta se cerró.
+    <br><br>Abre paso tocando <span class="kw" data-kw="eleccion">elección</span> (o <span class="kw" data-kw="lealtad">lealtad</span>).`
+  },
+
+  /* 3 - Equilibrio (balanza) */
+  {
+    id:3,
+    sym:'⚖️',
+    title:'Claridad y respeto — La balanza que debe enderezarse',
+    body:`El amor no es poder ni sumisión: es balanza. Dar y recibir en equilibrio.
+    La falta de coherencia inclina y desgasta.
+    <br><br>Endereza la balanza tocando <span class="kw" data-kw="equilibrio">equilibrio</span>.`
+  },
+
+  /* 4 - Tiempo (jardín) */
+  {
+    id:4,
+    sym:'⏳',
+    title:'Tiempo propio — El jardín que pide cuidado',
+    body:`El amor también es jardín: necesita sol, sombra y tiempo. Pedí días para hablar con mi mamá y decidir con calma.
+    Las prisas y la evasión marchitan lo que podría crecer.
+    <br><br>Respeta ese espacio tocando <span class="kw" data-kw="tiempo">tiempo</span>.`
+  },
+
+  /* 5 - Decisión (sol/paz) */
+  {
+    id:5,
+    sym:'🌞',
+    title:'Decisión — La luz que queda',
+    body:`El amor es elección diaria: hoy elijo cuidarme, hablar claro y elegir paz. La ambigüedad me destruye.
+    <br><br>Para seguir toca <span class="kw" data-kw="paz">paz</span>.`
+  },
+
+  /* 6 - Mentiras (espejo roto / agua estancada) */
+  {
+    id:6,
+    sym:'🪞',
+    title:'Mentiras — El espejo roto y el agua estancada',
+    body:`El amor debería reflejar la verdad; en su lugar encontré espejos rotos que devuelven fragmentos.
+    Las mentiras y las acciones aparentes (bromas, silencios, omisiones) se clavan como fragmentos invisibles: distorsionan la imagen, generan ansiedad y desgastan la mente.
+    La mentira se parece al agua estancada: por fuera puede verse tranquila, pero por dentro envenena.
+    <br><br>Si quieres entender, toca <span class="kw" data-kw="verdad">verdad</span>.`
+  },
+
+  /* 7 - Salida (corazón reparado) */
+  {
+    id:7,
+    sym:'💖',
+    title:'Salida — Cierre simbólico',
+    body:`No soy tu enemiga. Este es mi cierre: te libero con amor. El amor que cuida no se apoya en máscaras ni en humo; se sostiene en actos que se corrigen y palabras que se sostienen.
+    <br><br>Si entiendes, toca <span class="kw" data-kw="entender">entender</span> para completar.`
+  }
+];
+
+/* -------------------- Estado y referencias -------------------- */
+let idx = 0;
+const symbolEl = document.getElementById('symbol');
+const titleEl = document.getElementById('title');
+const bodyEl = document.getElementById('body');
+const nextBtn = document.getElementById('nextBtn');
+const listenBtn = document.getElementById('listenBtn');
+const overlay = document.getElementById('overlay');
+const finalFull = document.getElementById('finalFull');
+const restartBtn = document.getElementById('restartBtn');
+const bgm = document.getElementById('bgm');
+const dots = Array.from(document.querySelectorAll('.dot'));
+
+/* ---------- reproducir música si hay gesto ---------- */
+function tryPlayMusic(){
+  if(!bgm) return;
+  bgm.volume = 0.28;
+  bgm.play().catch(()=>{/* autoplay bloqueado hasta gesto del usuario */});
+}
+
+/* ---------- render paso ---------- */
+function render(i){
+  const step = STEPS[i];
+  symbolEl.textContent = step.sym;
+  titleEl.textContent = step.title;
+  bodyEl.innerHTML = step.body;
+  dots.forEach((d,j)=> d.classList.toggle('active', j===i));
+  // rehacer listeners de keywords (solo una vez)
+  Array.from(document.querySelectorAll('.kw')).forEach(k=>{
+    k.onclick = (ev)=> { handleKeyword(k.dataset.kw); };
+  });
+  // bloquear avance hasta tocar keyword correcta
+  nextBtn.disabled = true; nextBtn.style.opacity = 0.6;
+  listenBtn.disabled = false; listenBtn.style.opacity = 1;
+  animatePanel();
+}
+
+/* ---------- micro animación del panel ---------- */
+function animatePanel(){
+  const panel = document.getElementById('panel');
+  panel.animate([{transform:'translateZ(0) scale(1)'},{transform:'translateZ(30px) scale(1.01)'},{transform:'translateZ(0) scale(1)'}],
+      {duration:900, easing:'ease'});
+}
+
+/* ---------- mapa de palabras clave válidas ---------- */
+const VALID = {
+  confianza:0,
+  lealtad:1,
+  eleccion:2,
+  equilibrio:3,
+  tiempo:4,
+  paz:5,
+  verdad:6,
+  entender:7
+};
+
+/* ---------- manejar keyword (obliga a atender) ---------- */
+function handleKeyword(key){
+  const required = VALID[key];
+  // permitir sincronicidad: 'lealtad' válido en 1 y 2; 'eleccion' también en 2
+  const allowed =
+    required === idx ||
+    (key==='lealtad' && (idx===1 || idx===2)) ||
+    (key==='eleccion' && idx===2) ||
+    (key==='verdad' && idx===6) ||
+    (key==='entender' && idx===7);
+
+  if(allowed){
+    pulseKeyVisual(key);
+    nextBtn.disabled = false; nextBtn.style.opacity = 1;
+    listenBtn.disabled = true; listenBtn.style.opacity = 0.5;
+    tryPlayMusic();
+    // pequeño efecto en el símbolo
+    symbolEl.animate([{transform:'translateZ(0) scale(1)'},{transform:'translateZ(40px) scale(1.12)'},{transform:'translateZ(0) scale(1)'}],{duration:700});
+  } else {
+    // si toca palabra equivocada, vibra pequeña
+    Array.from(document.querySelectorAll('.kw')).forEach(el=>{
+      el.animate([{transform:'translateX(0)'},{transform:'translateX(-8px)'},{transform:'translateX(8px)'},{transform:'translateX(0)'}],{duration:450});
+    });
+  }
+}
+
+/* pulse visual para keyword */
+function pulseKeyVisual(k){
+  const el = Array.from(document.querySelectorAll('.kw')).find(x=>x.dataset.kw===k);
+  if(!el) return;
+  el.animate([{transform:'scale(1)'},{transform:'scale(1.12)'},{transform:'scale(1)'}],{duration:420});
+  el.style.background = 'linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.06))';
+}
+
+/* ---------- escuchar lectura (voz sintetizada) ---------- */
+listenBtn.addEventListener('click', ()=>{
+  const text = STEPS[idx].title + ". " + STEPS[idx].body.replace(/<[^>]+>/g,'');
+  if(window.speechSynthesis){
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'es-ES'; u.rate = 0.95; u.pitch = 1;
+    try{ window.speechSynthesis.cancel(); window.speechSynthesis.speak(u); } catch(e){}
+  }
+  // animar keywords para indicio
+  Array.from(document.querySelectorAll('.kw')).forEach(k=>{
+    k.animate([{transform:'translateY(0)'},{transform:'translateY(-6px)'},{transform:'translateY(0)'}],{duration:800});
+  });
+  tryPlayMusic();
+});
+
+/* ---------- avanzar cuando Next presionado ---------- */
+nextBtn.addEventListener('click', ()=>{
+  if(idx < STEPS.length - 1){
+    idx++; render(idx);
+  } else {
+    completeJourney();
+  }
+});
+
+/* panel click: intenta avanzar si next habilitado */
+document.getElementById('panel').addEventListener('click', (e)=>{
+  if(e.target.classList.contains('kw')) return;
+  if(!nextBtn.disabled) nextBtn.click();
+  else {
+    // nudges
+    Array.from(document.querySelectorAll('.kw')).forEach(k=>k.animate([{transform:'translateY(0)'},{transform:'translateY(-6px)'},{transform:'translateY(0)'}],{duration:700}));
+  }
+});
+
+/* ---------- completa y muestra reparación + pantalla final ---------- */
+function completeJourney(){
+  overlay.classList.add('show'); overlay.setAttribute('aria-hidden','false');
+  tryPlayMusic();
+  setTimeout(()=>{
+    overlay.classList.remove('show'); overlay.setAttribute('aria-hidden','true');
+    finalFull.classList.add('show'); finalFull.style.display = 'flex';
+    finalFull.animate([{opacity:0, transform:'scale(.98)'},{opacity:1, transform:'scale(1)'}],{duration:500});
+  },1300);
+}
+
+/* restart */
+restartBtn.addEventListener('click', ()=>{
+  finalFull.classList.remove('show'); finalFull.style.display = 'none';
+  idx = 0; render(idx);
+});
+
+/* keyboard shortcuts */
+document.addEventListener('keydown', (e)=>{
+  if(e.key === 'ArrowRight') nextBtn.click();
+  if(e.key === 'ArrowLeft' && idx>0){ idx--; render(idx); }
+});
+
+/* init */
+render(idx);
+/* attempt play music on first tap */
+document.body.addEventListener('click', function start(){ tryPlayMusic(); document.body.removeEventListener('click', start); }, {once:true});
+</script>
+</body>
+</html>
